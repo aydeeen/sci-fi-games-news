@@ -6,7 +6,7 @@ import axios from "axios";
 import Navigation from "../ui/Navigation";
 import Layout from "../ui/Layout";
 import Input from "../input/Input";
-import classes from "./articles.module.scss";
+import classes from "./Articles.module.scss";
 
 const Articles = () => {
    const [articles, setArticles] = useState([]);
