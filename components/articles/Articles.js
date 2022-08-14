@@ -107,7 +107,7 @@ const Articles = () => {
                      slug={article.slug}
                      image={article.post_image}
                      title={article.title}
-                     date={formatedDate}
+                     date={article.date}
                      excerpt={excerpt}
                      removeArticle={removeArticle.bind(null, article.slug)}
                   />
