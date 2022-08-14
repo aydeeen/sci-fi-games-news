@@ -1,0 +1,32 @@
+.input-wrapper {
+   display: flex;
+
+   input {
+      color: #010102;
+      background: #fff;
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+      border: none;
+      flex-basis: 90%;
+      padding: 15px 30px;
+
+      @media (min-width: 320px) and (max-width: 369px) {
+         padding: 15px 0;
+      }
+   }
+
+   button {
+      flex-basis: 10%;
+      transition: all 0.3s;
+      background: #4493d5;
+      color: #ffffff;
+      border: none;
+      padding: 15px 30px;
+      font-weight: 700;
+      font-size: 16px;
+
+      &:hover {
+         background: #ff3333;
+      }
+   }
+}

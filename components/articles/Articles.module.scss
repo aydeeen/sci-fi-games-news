@@ -1,0 +1,23 @@
+.articles {
+   display: flex;
+   flex-wrap: wrap;
+}
+
+.count-title {
+   text-align: right;
+}
+
+.refetch-button {
+   transition: all 0.3s;
+   background: #4493d5;
+   color: #ffffff;
+   border: none;
+   padding: 15px 30px;
+   font-weight: 700;
+   font-size: 16px;
+   cursor: pointer;
+
+   &:hover {
+      background: #ff3333;
+   }
+}
