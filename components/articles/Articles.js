@@ -99,7 +99,11 @@ const Articles = () => {
          </h3>
          <div className={classes.articles}>
             {articles.map((article, index) => {
-               const formatedDate = new Date(article.date).toLocaleDateString();
+               const formatedDate = new Date(article.date).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                }).replace(/-/g, '/');
                const excerpt = article.excerpt.replace(/<(.|\n)*?>/g, "");
                return (
                   <SingleArticle
@@ -107,7 +111,7 @@ const Articles = () => {
                      slug={article.slug}
                      image={article.post_image}
                      title={article.title}
-                     date={article.date}
+                     date={formatedDate}
                      excerpt={excerpt}
                      removeArticle={removeArticle.bind(null, article.slug)}
                   />
