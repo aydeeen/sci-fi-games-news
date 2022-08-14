@@ -1,5 +1,7 @@
 ## Getting Started
 
+URL: https://sci-fi-games-news.vercel.app/
+
 ```bash
 First run "npm install" to install install necessary packages.
 After that, run the the development server:
