@@ -99,11 +99,7 @@ const Articles = () => {
          </h3>
          <div className={classes.articles}>
             {articles.map((article, index) => {
-               const formatedDate = new Date(article.date).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                }).replace(/-/g, '/');
+               const formatedDate = new Date(article.date).toLocaleDateString('en-GB');
                const excerpt = article.excerpt.replace(/<(.|\n)*?>/g, "");
                return (
                   <SingleArticle
