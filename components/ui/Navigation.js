@@ -1,30 +1,25 @@
-import { useState } from 'react'
+import { NAVIGATION_ITEMS } from "../../config/constants";
 
 import classes from "./Navigation.module.scss";
 
-const Navigation = (props) => {
-   const [isActive, setActive] = useState(true)
-
-   const toggleActiveClass = () => {
-      setActive((prev) => !prev)
-    }
+const Navigation = ({ filterCategories, refetch, categoryId }) => {
+   const handleFilterCategories = (categoryId) => {
+      filterCategories(categoryId);
+   };
 
    return (
       <header className={classes.header}>
          <nav>
             <ul>
-               {props.uniqueCategories.map((category) => (
-                  <li key={category.post_category_id}>
-                     <a onClick={props.filterCategories.bind(null,category.post_category_id)}>
-                        {category.post_category_id == 1 && "X Universe"}
-                        {category.post_category_id == 2 && "Elite: Dangerous"}
-                        {category.post_category_id == 3 && "Starpoint Gemini"}
-                        {category.post_category_id == 4 && "EVE Online"}
+               {NAVIGATION_ITEMS.map((category) => (
+                  <li key={category.id} className={categoryId === category.id ? classes.active : ""}>
+                     <a onClick={() => handleFilterCategories(category.id)}>
+                        {category.title}
                      </a>
                   </li>
                ))}
-               <li className={isActive ? classes.active : ''} onClick={toggleActiveClass}>
-                  <a onClick={props.refetch}>Show All</a>
+               <li className={!categoryId ? classes.active : ""}>
+                  <a onClick={refetch}>Show All</a>
                </li>
             </ul>
          </nav>

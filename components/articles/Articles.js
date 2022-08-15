@@ -1,57 +1,65 @@
-import React, { useState } from "react";
-import SingleArticle from "./SingleArticle";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { format, set } from "date-fns";
+
+import ArticlesApi from "../../api/articlesApi";
 
 import Navigation from "../ui/Navigation";
 import Layout from "../ui/Layout";
+import Toggle from "../ui/Toggle";
 import Input from "../input/Input";
+import SingleArticle from "./SingleArticle";
+
 import classes from "./Articles.module.scss";
 
-const Articles = () => {
+const Articles = ({ articlesData }) => {
    const [articles, setArticles] = useState([]);
+   const [categoryId, setCategoryId] = useState(undefined);
+   const [categories, setCategories] = useState([]);
+   const [toggle, setToggle] = useState(false);
 
    const { data, error, isError, isLoading, refetch } = useQuery(
       ["articles"],
-      async () => {
-         const { data } = await axios(
-            "https://www.alpha-orbital.com/last-100-news.json"
-         );
-
-         setArticles(data);
-
-         return data;
+      () => ArticlesApi.last100News(),
+      {
+         onSuccess: (data) => {
+            setArticles(data);
+         },
+         initialData: articlesData,
       }
    );
-
-   if (isLoading) {
-      return <h1>Loading...</h1>;
-   }
-
-   if (isError) {
-      return <h1>{error}</h1>;
-   }
 
    const filterArticles = (event) => {
       const query = event.target.value;
       let filteredArticles;
 
-      if (query.length > 2) {
-         filteredArticles = articles.filter((article) => {
+      if (query.length > 2 && categoryId != undefined) {
+         filteredArticles = data.filter((article) => {
+            if (article.post_category_id == categoryId) {
+               return (
+                  article.title.toLowerCase().indexOf(query.toLowerCase()) !==-1 ||
+                  article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
+               );
+            }
+         });
+         setArticles(filteredArticles);
+      } else if (query.length > 2 && categoryId == undefined) {
+         filteredArticles = data.filter((article) => {
             return (
-               article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 || 
-               article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 &&
-               article.post_category_id == articles[0].post_category_id
+               article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+               article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
             );
          });
 
          setArticles(filteredArticles);
-      } else {
+      } else if (categoryId != undefined) {
          filteredArticles = data.filter((article) => {
-            return article.post_category_id == articles[0].post_category_id;
+            return article.post_category_id == categoryId;
          });
 
          setArticles(filteredArticles);
+      } else {
+         setArticles(data);
       }
    };
 
@@ -65,57 +73,111 @@ const Articles = () => {
 
    const filterCategories = (catId) => {
       let filteredCategories;
-      if (catId.length) {
+      if (catId != undefined) {
+         setCategoryId(catId);
          filteredCategories = data.filter((article) => {
             return article.post_category_id == catId;
          });
       } else {
          filterCategories = data;
       }
-
       setArticles(filteredCategories);
+   };
+
+   const handleRefetch = () => {
+      refetch();
+      setCategoryId(undefined);
    };
 
    const uniqueIds = [];
 
-   const uniqueCategories = data.filter((item) => {
-      const isDuplicate = uniqueIds.includes(item.post_category_id);
+   const uniqueCategories = () => {
+      if (categories.length === 0) {
+         data.filter((item) => {
+            const isDuplicate = uniqueIds.includes(item.post_category_id);
 
-      if (!isDuplicate) {
-         uniqueIds.push(item.post_category_id);
+            if (!isDuplicate) {
+               uniqueIds.push(item.post_category_id);
 
-         return true;
+               return true;
+            }
+
+            return false;
+         });
+
+         setCategories(uniqueIds);
       }
 
-      return false;
-   });
+      setToggle((prevState) => !prevState);
+   };
+
+   const removeArticlesFromCategory = (id) => {
+      let updatedCategories;
+      let filterCategory;
+
+      updatedCategories = articles.filter(
+         (article) => article.post_category_id !== id
+      );
+      filterCategory = categories.filter((categoryId) => categoryId !== id);
+
+      setArticles(updatedCategories);
+      setCategories(filterCategory);
+   };
+
+   const showRefetch = articles?.length < 100;
+
+   if (isLoading) {
+      return <h1>Loading...</h1>;
+   }
+
+   if (isError) {
+      return <h1>{error}</h1>;
+   }
 
    return (
       <Layout>
-         <Navigation uniqueCategories={uniqueCategories} filterCategories={filterCategories} refetch={refetch} />
+         <Navigation
+            categoryId={categoryId}
+            filterCategories={filterCategories}
+            refetch={handleRefetch}
+         />
          <Input filterArticles={filterArticles} />
+
+         {!categoryId && (
+            <Toggle
+               categories={categories}
+               uniqueCategories={uniqueCategories}
+               removeArticlesFromCategory={removeArticlesFromCategory}
+               toggle={toggle}
+            />
+         )}
+
          <h3 className={classes["count-title"]}>
             Currently showing {articles.length} articles
          </h3>
          <div className={classes.articles}>
-            {articles.map((article, index) => {
-               const formatedDate = new Date(article.date).toLocaleDateString('en-GB');
+            {articles.map((article) => {
+               const formatedDate = format(new Date(article.date), "P");
                const excerpt = article.excerpt.replace(/<(.|\n)*?>/g, "");
                return (
                   <SingleArticle
-                     key={index}
+                     key={article.slug}
                      slug={article.slug}
                      image={article.post_image}
                      title={article.title}
                      date={formatedDate}
                      excerpt={excerpt}
-                     removeArticle={removeArticle.bind(null, article.slug)}
+                     removeArticle={() => removeArticle(article.slug)}
                   />
                );
             })}
          </div>
-         {articles.length < 100 && (
-            <button type="button" className={classes["refetch-button"]} onClick={refetch}>
+         {showRefetch && (
+            <button
+               type="button"
+               className={classes["refetch-button"]}
+               onClick={handleRefetch}
+            >
                Refetch
             </button>
          )}
