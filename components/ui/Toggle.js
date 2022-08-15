@@ -10,7 +10,7 @@ function Layout({ categories, uniqueCategories, removeArticlesFromCategory, togg
             {toggle && <h2>Categories</h2>}
             {toggle && categories.map(id => {
                return (
-                  <h6>
+                  <h6 key={id}>
                      {id == 1 && "X Universe"}
                      {id == 2 && "Elite: Dangerous"}
                      {id == 3 && "Starpoint Gemini"}
