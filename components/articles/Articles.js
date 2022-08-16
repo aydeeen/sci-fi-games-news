@@ -17,7 +17,7 @@ const Articles = ({ articlesData }) => {
    const [categoryId, setCategoryId] = useState(undefined);
    const [categories, setCategories] = useState([]);
    const [toggle, setToggle] = useState(false);
-   const [deletedArticles, setDeletedArticles] = useState([])
+   const [deletedArticles, setDeletedArticles] = useState([]);
 
    const { data, error, isError, isLoading, refetch } = useQuery(
       ["articles"],
@@ -36,10 +36,16 @@ const Articles = ({ articlesData }) => {
 
       if (query.length > 2 && categoryId != undefined) {
          filteredArticles = data.filter((article) => {
-            if (article.post_category_id == categoryId && !deletedArticles.includes(article)) {
+            if (
+               article.post_category_id == categoryId &&
+               !deletedArticles.includes(article)
+            ) {
                return (
-                  article.title.toLowerCase().indexOf(query.toLowerCase()) !==-1 ||
-                  article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 && !deletedArticles.includes(article)
+                  article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+                  (article.excerpt
+                     .toLowerCase()
+                     .indexOf(query.toLowerCase()) !== -1 &&
+                     !deletedArticles.includes(article))
                );
             }
          });
@@ -52,13 +58,15 @@ const Articles = ({ articlesData }) => {
                   article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
                );
             }
-        
          });
 
          setArticles(filteredArticles);
       } else if (categoryId != undefined) {
          filteredArticles = data.filter((article) => {
-            return article.post_category_id == categoryId && !deletedArticles.includes(article);
+            return (
+               article.post_category_id == categoryId &&
+               !deletedArticles.includes(article)
+            );
          });
 
          setArticles(filteredArticles);
@@ -78,8 +86,8 @@ const Articles = ({ articlesData }) => {
       updatedArticles = articles.filter((article) => article.slug !== slug);
       deletedArticle = data.filter((article) => article.slug == slug);
 
-      setDeletedArticles(prevState => [...prevState, ...deletedArticle]);
-      console.log(deletedArticles)
+      setDeletedArticles((prevState) => [...prevState, ...deletedArticle]);
+      console.log(deletedArticles);
       setArticles(updatedArticles);
    };
 
@@ -88,16 +96,31 @@ const Articles = ({ articlesData }) => {
       if (catId != undefined) {
          setCategoryId(catId);
          filteredCategories = data.filter((article) => {
-            return article.post_category_id == catId;
+            if (!deletedArticles.includes(article)) {
+               return article.post_category_id == catId;
+            }
          });
       } else {
-         filterCategories = data;
+         filteredCategories = data.filter((article) => {
+            return !deletedArticles.includes(article);
+         });
       }
       setArticles(filteredCategories);
+      console.log(filteredCategories);
    };
 
    const handleRefetch = () => {
       refetch();
+      setCategoryId(undefined);
+   };
+
+   const handleNavRefetch = () => {
+      const articles = data.filter((article) => {
+         return !deletedArticles.includes(article);
+      });
+
+      setArticles(articles);
+
       setCategoryId(undefined);
    };
 
@@ -135,10 +158,10 @@ const Articles = ({ articlesData }) => {
       deletedCategories = articles.filter(
          (article) => article.post_category_id == id
       );
-      
+
       filterCategory = categories.filter((categoryId) => categoryId !== id);
 
-      setDeletedArticles(prevState => [...prevState, ...deletedCategories]);
+      setDeletedArticles((prevState) => [...prevState, ...deletedCategories]);
       setArticles(updatedCategories);
       setCategories(filterCategory);
    };
@@ -158,7 +181,7 @@ const Articles = ({ articlesData }) => {
          <Navigation
             categoryId={categoryId}
             filterCategories={filterCategories}
-            refetch={handleRefetch}
+            refetch={handleNavRefetch}
          />
          <Input filterArticles={filterArticles} />
 
