@@ -36,7 +36,7 @@ const Articles = ({ articlesData }) => {
 
       if (query.length > 2 && categoryId != undefined) {
          filteredArticles = data.filter((article) => {
-            if (article.post_category_id == categoryId) {
+            if (article.post_category_id == categoryId && !deletedArticles.includes(article)) {
                return (
                   article.title.toLowerCase().indexOf(query.toLowerCase()) !==-1 ||
                   article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 && !deletedArticles.includes(article)
@@ -46,10 +46,13 @@ const Articles = ({ articlesData }) => {
          setArticles(filteredArticles);
       } else if (query.length > 2 && categoryId == undefined) {
          filteredArticles = data.filter((article) => {
-            return (
-               article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
-               article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 && !deletedArticles.includes(article)
-            );
+            if (!deletedArticles.includes(article)) {
+               return (
+                  article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+                  article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
+               );
+            }
+        
          });
 
          setArticles(filteredArticles);
@@ -122,14 +125,20 @@ const Articles = ({ articlesData }) => {
 
    const removeArticlesFromCategory = (id) => {
       let updatedCategories;
+      let deletedCategories;
       let filterCategory;
 
       updatedCategories = articles.filter(
          (article) => article.post_category_id !== id
       );
+
+      deletedCategories = articles.filter(
+         (article) => article.post_category_id == id
+      );
       
       filterCategory = categories.filter((categoryId) => categoryId !== id);
 
+      setDeletedArticles(prevState => [...prevState, ...deletedCategories]);
       setArticles(updatedCategories);
       setCategories(filterCategory);
    };
