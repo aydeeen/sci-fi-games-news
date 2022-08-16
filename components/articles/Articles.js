@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, set } from "date-fns";
 
@@ -17,6 +17,7 @@ const Articles = ({ articlesData }) => {
    const [categoryId, setCategoryId] = useState(undefined);
    const [categories, setCategories] = useState([]);
    const [toggle, setToggle] = useState(false);
+   const [deletedArticles, setDeletedArticles] = useState([])
 
    const { data, error, isError, isLoading, refetch } = useQuery(
       ["articles"],
@@ -38,7 +39,7 @@ const Articles = ({ articlesData }) => {
             if (article.post_category_id == categoryId) {
                return (
                   article.title.toLowerCase().indexOf(query.toLowerCase()) !==-1 ||
-                  article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
+                  article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 && !deletedArticles.includes(article)
                );
             }
          });
@@ -47,27 +48,35 @@ const Articles = ({ articlesData }) => {
          filteredArticles = data.filter((article) => {
             return (
                article.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
-               article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1
+               article.excerpt.toLowerCase().indexOf(query.toLowerCase()) !== -1 && !deletedArticles.includes(article)
             );
          });
 
          setArticles(filteredArticles);
       } else if (categoryId != undefined) {
          filteredArticles = data.filter((article) => {
-            return article.post_category_id == categoryId;
+            return article.post_category_id == categoryId && !deletedArticles.includes(article);
          });
 
          setArticles(filteredArticles);
       } else {
-         setArticles(data);
+         filteredArticles = data.filter((article) => {
+            return !deletedArticles.includes(article);
+         });
+
+         setArticles(filteredArticles);
       }
    };
 
    const removeArticle = (slug) => {
       let updatedArticles;
+      let deletedArticle;
 
       updatedArticles = articles.filter((article) => article.slug !== slug);
+      deletedArticle = data.filter((article) => article.slug == slug);
 
+      setDeletedArticles(prevState => [...prevState, ...deletedArticle]);
+      console.log(deletedArticles)
       setArticles(updatedArticles);
    };
 
@@ -118,6 +127,7 @@ const Articles = ({ articlesData }) => {
       updatedCategories = articles.filter(
          (article) => article.post_category_id !== id
       );
+      
       filterCategory = categories.filter((categoryId) => categoryId !== id);
 
       setArticles(updatedCategories);
